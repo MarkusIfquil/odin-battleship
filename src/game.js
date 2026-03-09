@@ -1,23 +1,3 @@
-class CoordMap {
-    constructor() {
-        this.map = new Map();
-    }
-    get(coord) {
-        const hashedCoord = hashCoord(coord);
-        return this.map.get(hashedCoord);
-    }
-    set(coord, value) {
-        const hashedCoord = hashCoord(coord);
-        this.map.set(hashedCoord, value);
-    }
-    size() {
-        return this.map.size;
-    }
-    values() {
-        return this.map.values();
-    }
-}
-
 export class Ship {
     constructor(length) {
         this.length = length;
@@ -55,11 +35,14 @@ const directions = {
 };
 
 export class Gameboard {
-    constructor() {
-        this.ships = new CoordMap();
-        this.shipCoordinates = new CoordMap();
-        this.isHit = new CoordMap();
-        this.missedShots = [];
+    constructor(width = 10, height = 10) {
+        this.width = width;
+        this.height = height;
+        this.ships = Array.from({ length: height }, () => []);
+        this.pointToRootPart = Array.from({ length: height }, () => []);
+        this.misses = Array.from({ length: height }, () => []);
+        this.hits = Array.from({ length: height }, () => []);
+        this.shipPlaces = Array.from({ length: height }, () => []);
     }
     placeShip(coordinates, direction, length) {
         if (this.#doesShipCollide(coordinates, direction, length)) {
@@ -71,18 +54,21 @@ export class Gameboard {
         let i = length;
 
         while (i) {
-            this.shipCoordinates.set(coordinates, rootCoord);
+            const [x, y] = coordinates;
+            this.pointToRootPart[x][y] = rootCoord;
+            this.shipPlaces[x][y] = true;
             coordinates = transformCoordinates(coordinates, transform);
             i--;
         }
-
-        this.ships.set(rootCoord, ship);
+        const [rX, rY] = rootCoord;
+        this.ships[rX][rY] = ship;
     }
     #doesShipCollide(coordinates, direction, length) {
         const transform = directions[direction];
         let i = length;
         while (i) {
-            if (this.shipCoordinates.get(coordinates) != undefined) {
+            const [x, y] = coordinates;
+            if (this.shipPlaces[x][y]) {
                 return true;
             }
             coordinates = transformCoordinates(coordinates, transform);
@@ -91,21 +77,23 @@ export class Gameboard {
         return false;
     }
     receiveAttack(coordinates) {
-        const shipRootCoord = this.shipCoordinates.get(coordinates);
-        if (!shipRootCoord) {
-            this.missedShots.push(coordinates);
+        const [x, y] = coordinates;
+        if (!this.shipPlaces[x][y]) {
+            this.misses[x][y] = true;
             return;
         }
-        if (!this.isHit.get(coordinates)) {
-            this.isHit.set(coordinates, true);
-            const rootCoord = this.shipCoordinates.get(coordinates);
-            this.ships.get(rootCoord).hit();
+        if (!this.hits[x][y]) {
+            this.hits[x][y] = true;
+            const [rX, rY] = this.pointToRootPart[x][y];
+            this.ships[rX][rY].hit();
         }
     }
     areShipsSunk() {
-        for (const ship of this.ships.values()) {
-            if (!ship.isSunk()) {
-                return false;
+        for (const [s] of this.ships) {
+            if (s) {
+                if (!s.isSunk()) {
+                    return false;
+                }
             }
         }
         return true;
