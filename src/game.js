@@ -63,12 +63,21 @@ export class Gameboard {
         const [rX, rY] = rootCoord;
         this.ships[rX][rY] = ship;
     }
+
+    #isOutOfBounds([x, y]) {
+        if (x > this.width || x < 0 || y > this.height || y < 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     #doesShipCollide(coordinates, direction, length) {
         const transform = directions[direction];
         let i = length;
         while (i) {
             const [x, y] = coordinates;
-            if (this.shipPlaces[x][y]) {
+            if (this.shipPlaces[x][y] || this.#isOutOfBounds(coordinates)) {
                 return true;
             }
             coordinates = transformCoordinates(coordinates, transform);
@@ -89,8 +98,8 @@ export class Gameboard {
         }
     }
     areShipsSunk() {
-        for (const [s] of this.ships) {
-            if (s) {
+        for (const a of this.ships) {
+            for (const s of a) {
                 if (!s.isSunk()) {
                     return false;
                 }

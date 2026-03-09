@@ -36,6 +36,11 @@ describe("test gameboard", () => {
         expect(g.pointToRootPart[0][1]).toStrictEqual([0, 0]);
         expect(g.pointToRootPart[1][1]).toBeUndefined();
     });
+    test("doesn't place ship if it would be out of bounds", () => {
+        let g = new Gameboard();
+        g.placeShip([0, 0], "north", 4);
+        expect(g.pointToRootPart[0][0]).toBeUndefined();
+    });
     test("receive attack correctly", () => {
         let g = new Gameboard();
         g.placeShip([0, 0], "south", 4);
