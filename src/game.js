@@ -27,7 +27,7 @@ function transformCoordinates(originalCoord, transform) {
     return [x + tX, y + tY];
 }
 
-const directions = {
+export const directions = {
     north: [0, -1],
     south: [0, 1],
     west: [-1, 0],
@@ -46,7 +46,7 @@ export class Gameboard {
     }
     placeShip(coordinates, direction, length) {
         if (this.#doesShipCollide(coordinates, direction, length)) {
-            return;
+            return false;
         }
         let ship = new Ship(length);
         const rootCoord = coordinates;
@@ -62,10 +62,11 @@ export class Gameboard {
         }
         const [rX, rY] = rootCoord;
         this.ships[rX][rY] = ship;
+        return true;
     }
 
     #isOutOfBounds([x, y]) {
-        if (x > this.width || x < 0 || y > this.height || y < 0) {
+        if (x > this.width - 1 || x < 0 || y > this.height - 1 || y < 0) {
             return true;
         } else {
             return false;
@@ -77,7 +78,7 @@ export class Gameboard {
         let i = length;
         while (i) {
             const [x, y] = coordinates;
-            if (this.shipPlaces[x][y] || this.#isOutOfBounds(coordinates)) {
+            if (this.#isOutOfBounds(coordinates) || this.shipPlaces[x][y]) {
                 return true;
             }
             coordinates = transformCoordinates(coordinates, transform);
@@ -89,13 +90,15 @@ export class Gameboard {
         const [x, y] = coordinates;
         if (!this.shipPlaces[x][y]) {
             this.misses[x][y] = true;
-            return;
+            return false;
         }
         if (!this.hits[x][y]) {
             this.hits[x][y] = true;
             const [rX, rY] = this.pointToRootPart[x][y];
             this.ships[rX][rY].hit();
+            return true;
         }
+        return false;
     }
     areShipsSunk() {
         for (const a of this.ships) {
@@ -110,7 +113,18 @@ export class Gameboard {
 }
 
 export class Player {
-    constructor() {
+    constructor(name) {
+        this.name = name;
         this.gameboard = new Gameboard();
+        this.state = PlayerState.WAITING;
+        this.axis = "north";
+        this.placeableShips = [5, 4, 3, 3, 2];
     }
 }
+
+export const PlayerState = {
+    PLACING_SHIPS: 0,
+    WAITING: 1,
+    ATTACKING: 2,
+    GAME_OVER: 3,
+};
