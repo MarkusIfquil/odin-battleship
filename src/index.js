@@ -36,9 +36,14 @@ function swapPlayer() {
     }
 }
 
+function getWaitingPlayer() {
+    const player = getCurrentPlayer();
+    return players.filter((p) => p != player)[0];
+}
+
 function drawMaps() {
     const player = getCurrentPlayer();
-    let otherPlayer = players.filter((p) => p != player)[0];
+    const otherPlayer = getWaitingPlayer();
 
     if (isComputerPlaying) {
         drawMap(players[0], false);
@@ -75,7 +80,7 @@ function isClickedAlready(player, x, y) {
 
 function attack(x, y) {
     const player = getCurrentPlayer();
-    let otherPlayer = players.filter((p) => p != player)[0];
+    const otherPlayer = getWaitingPlayer();
     if (isClickedAlready(otherPlayer, x, y)) {
         return;
     }
@@ -100,12 +105,13 @@ function actionAtCell(x, y, playerName) {
 }
 
 function doAction() {
+    clearCells("attack-ghost", "place-ghost");
     actionAtCell(selection.x, selection.y, selection.playerName);
 }
 
 function tickAfterAction() {
-    let player = getCurrentPlayer();
-    let otherPlayer = players.filter((p) => p != player)[0];
+    const player = getCurrentPlayer();
+    const otherPlayer = getWaitingPlayer();
     if (
         player.gameboard.areShipsSunk() &&
         !player.state == PlayerState.PLACING_SHIPS
@@ -173,12 +179,19 @@ function onCellClick(event) {
         playerName,
     };
     const player = getCurrentPlayer();
-    if (player.state == PlayerState.PLACING_SHIPS) {
+    const otherPlayer = getWaitingPlayer();
+    if (
+        player.state == PlayerState.PLACING_SHIPS &&
+        player.name == playerName
+    ) {
         clearCells("place-ghost");
         addClassToCells(player, x, y, player.placeableShips[0], "place-ghost");
-    } else if (player.state == PlayerState.ATTACKING) {
+    } else if (
+        player.state == PlayerState.ATTACKING &&
+        player.name != playerName
+    ) {
         clearCells("attack-ghost");
-        addClasstoCell(x, y, player, "attack-ghost");
+        addClasstoCell(x, y, otherPlayer.name, "attack-ghost");
     }
 }
 
@@ -216,6 +229,8 @@ function rotateAxis() {
 function handleKeyPress(event) {
     if (event.key == "r") {
         rotateAxis();
+    } else if (event.key == "Enter") {
+        doAction();
     }
 }
 
@@ -259,6 +274,7 @@ function switchPage() {
         playerTwoName,
         switchPage,
         doAction,
+        rotateAxis,
     );
     body.append(page);
     if (!isComputerPlaying) {

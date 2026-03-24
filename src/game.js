@@ -1,8 +1,9 @@
 export class Ship {
-    constructor(length) {
+    constructor(length, direction) {
         this.length = length;
         this.hitCount = 0;
         this.sunk = false;
+        this.direction = direction;
     }
     hit() {
         this.hitCount++;
@@ -42,13 +43,14 @@ export class Gameboard {
         this.pointToRootPart = Array.from({ length: height }, () => []);
         this.misses = Array.from({ length: height }, () => []);
         this.hits = Array.from({ length: height }, () => []);
+        this.sunk = Array.from({ length: height }, () => []);
         this.shipPlaces = Array.from({ length: height }, () => []);
     }
     placeShip(coordinates, direction, length) {
         if (this.#doesShipCollide(coordinates, direction, length)) {
             return false;
         }
-        let ship = new Ship(length);
+        let ship = new Ship(length, direction);
         const rootCoord = coordinates;
         const transform = directions[direction];
         let i = length;
@@ -94,8 +96,18 @@ export class Gameboard {
         }
         if (!this.hits[x][y]) {
             this.hits[x][y] = true;
-            const [rX, rY] = this.pointToRootPart[x][y];
+            let [rX, rY] = this.pointToRootPart[x][y];
             this.ships[rX][rY].hit();
+            if (this.ships[rX][rY].isSunk()) {
+                let length = this.ships[rX][rY].length;
+                const [tX, tY] = directions[this.ships[rX][rY].direction];
+                while (length) {
+                    this.sunk[rX][rY] = true;
+                    rX += tX;
+                    rY += tY;
+                    length--;
+                }
+            }
             return true;
         }
         return false;
@@ -116,7 +128,7 @@ export class Player {
     constructor(name) {
         this.name = name;
         this.gameboard = new Gameboard();
-        this.state = PlayerState.WAITING;
+        this.state = PlayerState.PLACING_SHIPS;
         this.axis = "north";
         this.placeableShips = [5, 4, 3, 3, 2];
     }

@@ -79,6 +79,7 @@ export function makeGamePage(
     playerTwoName,
     onStart,
     onSubmit,
+    onRotate,
 ) {
     let page = document.createElement("div");
     page.className = "game-page";
@@ -103,23 +104,36 @@ export function makeGamePage(
     let readyButton = document.createElement("button");
     readyButton.id = "ready";
     readyButton.textContent = "Ready";
-    readyButton.style.visibility = "hidden";
+    readyButton.style.display = "none";
     readyButton.onclick = () => {
-        document.querySelector(".grid-container").style.visibility = "visible";
-        readyButton.style.visibility = "hidden";
+        document.querySelector(".grid-container").style.display = "flex";
+        readyButton.style.display = "none";
     };
+
+    let rotateButton = document.createElement("button");
+    rotateButton.id = "rotate";
+    rotateButton.textContent = "Rotate";
+    rotateButton.onclick = onRotate;
 
     let submitButton = document.createElement("button");
     submitButton.id = "submit";
     submitButton.textContent = "Submit";
     submitButton.onclick = onSubmit;
+
+    let buttonsDiv = document.createElement("div");
+    buttonsDiv.append(submitButton, rotateButton, newGameButton);
+
+    let controlsP = document.createElement("p");
+    controlsP.innerHTML =
+        "Place ships by clicking on your map. Press r or the rotate button to rotate your ship placement.<br>Attack by clicking on your opponents map.<br>Once you have selected your square, press Enter or the submit button to submit your move.<br>In two player mode, once you have submitted your move, you pass your device over to your opponent, who clicks the ready button to continue the game.";
+
     page.append(
         turnOrder,
         command,
-        gridContainer,
-        submitButton,
         readyButton,
-        newGameButton,
+        gridContainer,
+        buttonsDiv,
+        controlsP,
     );
     return page;
 }
@@ -179,6 +193,9 @@ export function drawMap(player, shouldBeHidden) {
             if (player.gameboard.shipPlaces[x][y] && !shouldBeHidden) {
                 addClasstoCell(x, y, player.name, "placed-ship");
             }
+            if (player.gameboard.sunk[x][y]) {
+                addClasstoCell(x, y, player.name, "ship-sunk");
+            }
         }
     }
 }
@@ -192,8 +209,8 @@ export function getPlayerNames() {
 }
 
 export function hideScreen() {
-    document.querySelector(".grid-container").style.visibility = "hidden";
-    document.querySelector("#ready").style.visibility = "visible";
+    document.querySelector(".grid-container").style.display = "none";
+    document.querySelector("#ready").style.display = "block";
 }
 
 export function clearCells(...classes) {
