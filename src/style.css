@@ -1,24 +1,67 @@
+@import url("https://cdn.jsdelivr.net/npm/@catppuccin/palette/css/catppuccin.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    background-color: var(--ctp-macchiato-mantle);
+    color: var(--ctp-macchiato-text);
+    font-family: "Jetbrains Mono";
+    border-color: var(--ctp-macchiato-blue);
+    border-radius: 0.5rem;
+}
+
+.start-page,
+.game-page {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+}
+
+h1 {
+    font-size: 5em;
+    margin: 1em;
+}
+
+h2 {
+    font-size: 3em;
+    margin: 1em;
+}
+
+button {
+    background-color: var(--ctp-macchiato-crust);
+    font-size: 1.5em;
+    padding: 0.5em 0.75em;
+    margin: 0.5em;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+input {
+    padding: 0.5em;
+    margin: 0.5em;
+}
+
 .game-square {
-    padding: 1em;
-    margin: 0.1em;
-    background-color: gray;
-    border: solid black;
+    background-color: var(--ctp-macchiato-surface1);
+    border: 2px solid var(--ctp-macchiato-crust);
     border-radius: 0.3em;
 }
 
 .game-square.hover-attack,
 .attack-ghost {
-    background-color: red;
-    opacity: 0.5;
+    background-color: var(--ctp-macchiato-overlay3);
 }
 
 .game-square.hover-place,
 .place-ghost {
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 .placed-ship {
-    background-color: white;
+    background-color: var(--ctp-macchiato-lavender);
 }
 
 .game-grid {
@@ -29,15 +72,18 @@
 }
 
 .grid-container {
+    width: 80%;
+    margin: 1em;
     display: flex;
+    flex-wrap: wrap;
     gap: 5em;
     justify-content: center;
 }
 
 .ship-hit {
-    background-color: purple;
+    background-color: var(--ctp-macchiato-red);
 }
 
 .ship-miss {
-    background-color: black;
+    background-color: var(--ctp-macchiato-crust);
 }

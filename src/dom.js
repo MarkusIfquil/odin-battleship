@@ -19,6 +19,7 @@ export function makeStartPage(onStart) {
     console.log(onStart);
     body.innerHTML = "";
     let page = document.createElement("div");
+    page.classList.add("start-page");
     let title = document.createElement("h1");
     title.textContent = "BATTLESHIPS";
     let versusButton = document.createElement("button");
@@ -63,7 +64,6 @@ function makeGrid(width, height, onCellClick, onCellHover, playerName) {
             square.onclick = onCellClick;
             square.onmouseover = onCellHover;
             square.onmouseleave = () => {
-                console.log("hi");
                 clearCells("hover-attack", "hover-place");
             };
             grid.append(square);
@@ -82,7 +82,7 @@ export function makeGamePage(
 ) {
     let page = document.createElement("div");
     page.className = "game-page";
-    let turnOrder = document.createElement("h1");
+    let turnOrder = document.createElement("h2");
     turnOrder.id = "turn-order";
     let command = document.createElement("h2");
     command.id = "command";
@@ -117,9 +117,9 @@ export function makeGamePage(
         turnOrder,
         command,
         gridContainer,
-        newGameButton,
         submitButton,
         readyButton,
+        newGameButton,
     );
     return page;
 }

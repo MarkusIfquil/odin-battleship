@@ -8,6 +8,7 @@ import {
     drawMap,
     hideScreen,
     clearCells,
+    addClasstoCell,
 } from "./dom";
 import { Player, PlayerState } from "./game";
 import "./style.css";
@@ -175,6 +176,9 @@ function onCellClick(event) {
     if (player.state == PlayerState.PLACING_SHIPS) {
         clearCells("place-ghost");
         addClassToCells(player, x, y, player.placeableShips[0], "place-ghost");
+    } else if (player.state == PlayerState.ATTACKING) {
+        clearCells("attack-ghost");
+        addClasstoCell(x, y, player, "attack-ghost");
     }
 }
 
