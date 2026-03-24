@@ -103,7 +103,7 @@ export class Gameboard {
     areShipsSunk() {
         for (const a of this.ships) {
             for (const s of a) {
-                if (!s.isSunk()) {
+                if (s && !s.isSunk()) {
                     return false;
                 }
             }
@@ -126,5 +126,6 @@ export const PlayerState = {
     PLACING_SHIPS: 0,
     WAITING: 1,
     ATTACKING: 2,
-    GAME_OVER: 3,
+    WIN: 3,
+    LOSE: 4,
 };

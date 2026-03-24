@@ -5,6 +5,7 @@ import {
     updateGamePage,
     addClassToCells,
     getPlayerNames,
+    drawMap,
 } from "./dom";
 import { Player, PlayerState } from "./game";
 import "./style.css";
@@ -27,7 +28,20 @@ function swapPlayer() {
     }
 }
 
-function placeShip(player, x, y) {
+function drawMaps() {
+    const player = getCurrentPlayer();
+    let otherPlayer = players.filter((p) => p != player)[0];
+
+    if (isComputerPlaying) {
+        drawMap(players[0], false);
+        drawMap(players[1], true);
+    } else {
+        drawMap(player, true);
+        drawMap(otherPlayer, false);
+    }
+}
+
+function placeShipOnMap(player, x, y) {
     const currentShipLength = player.placeableShips[0];
     if (player.gameboard.placeShip([x, y], player.axis, currentShipLength)) {
         console.log(
@@ -38,31 +52,46 @@ function placeShip(player, x, y) {
     }
 }
 
-function drawShip(player, x, y, shipLength) {
-    addClassToCells(player, x, y, shipLength, "placed-ship");
+function placeShip(x, y) {
+    const player = getCurrentPlayer();
+    // let length = player.placeableShips[0];
+    placeShipOnMap(player, x, y);
+    if (player.placeableShips.length == 0) {
+        changePlayerState(PlayerState.WAITING);
+    }
+}
+
+// function drawShip(player, x, y, shipLength) {
+// addClassToCells(player, x, y, shipLength, "placed-ship");
+// }
+
+function isClickedAlready(player, x, y) {
+    return player.gameboard.hits[x][y] || player.gameboard.misses[x][y];
+}
+
+function attack(x, y) {
+    const player = getCurrentPlayer();
+    let otherPlayer = players.filter((p) => p != player)[0];
+    if (isClickedAlready(otherPlayer, x, y)) {
+        return;
+    }
+    console.log("attack", x, y, player.name);
+    let isHit = otherPlayer.gameboard.receiveAttack([x, y]);
+    drawAttack(isHit, otherPlayer, x, y);
+    changePlayerState(PlayerState.WAITING);
+    swapPlayer();
+    changePlayerState(PlayerState.ATTACKING);
 }
 
 function actionAtCell(x, y, playerName) {
     let player = getCurrentPlayer();
-    let otherPlayer = players.filter((p) => p != player)[0];
     if (playerName == player.name) {
         if (player.state == PlayerState.PLACING_SHIPS) {
-            let length = player.placeableShips[0];
-            if (placeShip(player, x, y)) {
-                drawShip(player, x, y, length);
-            }
-            if (player.placeableShips.length == 0) {
-                changePlayerState(PlayerState.WAITING);
-            }
+            placeShip(x, y);
         }
     } else {
         if (player.state == PlayerState.ATTACKING) {
-            console.log("attack", x, y, playerName);
-            let isHit = otherPlayer.gameboard.receiveAttack([x, y]);
-            drawAttack(isHit, otherPlayer, x, y);
-            changePlayerState(PlayerState.WAITING);
-            swapPlayer();
-            changePlayerState(PlayerState.ATTACKING);
+            attack(x, y);
         }
     }
     tickAfterAction();
@@ -79,6 +108,12 @@ function drawAttack(isHit, player, x, y) {
 function tickAfterAction() {
     let player = getCurrentPlayer();
     let otherPlayer = players.filter((p) => p != player)[0];
+    if (player.gameboard.areShipsSunk()) {
+        changePlayerState(PlayerState.LOSE);
+        swapPlayer();
+        changePlayerState(PlayerState.WIN);
+        return;
+    }
     if (player.state == PlayerState.ATTACKING) {
         if (player == players[1] && isComputerPlaying) {
             computerAttack();
@@ -90,10 +125,19 @@ function tickAfterAction() {
     ) {
         changePlayerState(PlayerState.ATTACKING);
     }
+    drawMaps();
 }
 
 function computerAttack() {
-    let [x, y] = targetRandomSquare(10, 10);
+    console.log("computer attack");
+    const otherPlayer = players[0];
+    let x, y;
+    while (true) {
+        [x, y] = targetRandomSquare(10, 10);
+        if (!isClickedAlready(otherPlayer, x, y)) {
+            break;
+        }
+    }
     actionAtCell(x, y, players[0].name);
     changePlayerState(PlayerState.WAITING);
 }
@@ -102,12 +146,14 @@ function changePlayerState(newState) {
     let player = getCurrentPlayer();
     if (newState == PlayerState.WAITING) {
         updateGamePage(player.name, "WAIT");
-    }
-    if (newState == PlayerState.ATTACKING) {
+    } else if (newState == PlayerState.ATTACKING) {
         updateGamePage(player.name, "ATTACK");
-    }
-    if (newState == PlayerState.PLACING_SHIPS) {
+    } else if (newState == PlayerState.PLACING_SHIPS) {
         updateGamePage(player.name, "PLACE SHIP");
+    } else if (newState == PlayerState.WIN) {
+        updateGamePage(player.name, "YOU WON");
+    } else if (newState == PlayerState.LOSE) {
+        updateGamePage(player.name, "YOU LOST");
     }
     player.state = newState;
 }

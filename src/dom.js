@@ -101,17 +101,49 @@ function isOutOfBounds(x, y) {
 export function addClassToCells(player, x, y, shipLength, className) {
     let [tX, tY] = directions[player.axis];
     while (shipLength) {
-        const coord = y * 10 + x;
-        let cell = document.querySelector(
-            `.game-square[class~='${coord}'].${player.name}`,
-        );
-        if (!cell || isOutOfBounds(x, y)) {
+        if (!addClasstoCell(x, y, player.name, className)) {
             break;
         }
-        cell.classList.add(className);
         x += tX;
         y += tY;
         shipLength--;
+    }
+}
+
+export function addClasstoCell(x, y, playerName, className) {
+    const coord = y * 10 + x;
+    let cell = document.querySelector(
+        `.game-square[class~='${coord}'].${playerName}`,
+    );
+    if (!cell || isOutOfBounds(x, y)) {
+        return false;
+    }
+    cell.classList.add(className);
+    return true;
+}
+
+export function drawMap(player, shouldBeHidden) {
+    if (shouldBeHidden) {
+        const cells = document.querySelectorAll(".game-square");
+        cells.forEach((c) => {
+            if (c.classList.item(2) == player.name) {
+                c.classList.remove("placed-ship");
+            }
+        });
+        return;
+    }
+    for (let x = 0; x < 10; x++) {
+        for (let y = 0; y < 10; y++) {
+            if (player.gameboard.hits[x][y]) {
+                addClasstoCell(x, y, player.name, "ship-hit");
+            }
+            if (player.gameboard.misses[x][y]) {
+                addClasstoCell(x, y, player.name, "ship-miss");
+            }
+            if (player.gameboard.shipPlaces[x][y] && !shouldBeHidden) {
+                addClasstoCell(x, y, player.name, "placed-ship");
+            }
+        }
     }
 }
 
