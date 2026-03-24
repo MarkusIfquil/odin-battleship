@@ -6,7 +6,7 @@ import {
     addClassToCells,
     getPlayerNames,
 } from "./dom";
-import { directions, Player, PlayerState } from "./game";
+import { Player, PlayerState } from "./game";
 import "./style.css";
 
 let body = document.querySelector("body");
@@ -30,7 +30,9 @@ function swapPlayer() {
 function placeShip(player, x, y) {
     const currentShipLength = player.placeableShips[0];
     if (player.gameboard.placeShip([x, y], player.axis, currentShipLength)) {
-        console.log(`placed ship at ${x} ${y} length ${currentShipLength}`);
+        console.log(
+            `placed ship at ${x} ${y} length ${currentShipLength} for ${player.name}`,
+        );
         player.placeableShips.shift();
         return true;
     }
@@ -40,23 +42,60 @@ function drawShip(player, x, y, shipLength) {
     addClassToCells(player, x, y, shipLength, "placed-ship");
 }
 
-function actionAtCell(x, y) {
+function actionAtCell(x, y, playerName) {
     let player = getCurrentPlayer();
     let otherPlayer = players.filter((p) => p != player)[0];
-    if (player.state == PlayerState.PLACING_SHIPS) {
-        let length = player.placeableShips[0];
-        if (placeShip(player, x, y)) {
-            drawShip(player, x, y, length);
+    if (playerName == player.name) {
+        if (player.state == PlayerState.PLACING_SHIPS) {
+            let length = player.placeableShips[0];
+            if (placeShip(player, x, y)) {
+                drawShip(player, x, y, length);
+            }
+            if (player.placeableShips.length == 0) {
+                changePlayerState(PlayerState.WAITING);
+            }
         }
-        if (player.placeableShips.length == 0) {
+    } else {
+        if (player.state == PlayerState.ATTACKING) {
+            console.log("attack", x, y, playerName);
+            let isHit = otherPlayer.gameboard.receiveAttack([x, y]);
+            drawAttack(isHit, otherPlayer, x, y);
             changePlayerState(PlayerState.WAITING);
+            swapPlayer();
+            changePlayerState(PlayerState.ATTACKING);
         }
-    } else if (player.state == PlayerState.ATTACKING) {
-        otherPlayer.gameboard.receiveAttack(x, y);
-        changePlayerState(PlayerState.WAITING);
-        swapPlayer();
+    }
+    tickAfterAction();
+}
+
+function drawAttack(isHit, player, x, y) {
+    if (isHit) {
+        addClassToCells(player, x, y, 1, "ship-hit");
+    } else {
+        addClassToCells(player, x, y, 1, "ship-miss");
+    }
+}
+
+function tickAfterAction() {
+    let player = getCurrentPlayer();
+    let otherPlayer = players.filter((p) => p != player)[0];
+    if (player.state == PlayerState.ATTACKING) {
+        if (player == players[1] && isComputerPlaying) {
+            computerAttack();
+        }
+    }
+    if (
+        player.state === PlayerState.WAITING &&
+        otherPlayer.state === PlayerState.WAITING
+    ) {
         changePlayerState(PlayerState.ATTACKING);
     }
+}
+
+function computerAttack() {
+    let [x, y] = targetRandomSquare(10, 10);
+    actionAtCell(x, y, players[0].name);
+    changePlayerState(PlayerState.WAITING);
 }
 
 function changePlayerState(newState) {
@@ -76,9 +115,11 @@ function changePlayerState(newState) {
 function onCellClick(event) {
     const button = event.target;
     const coords = button.classList.item(1);
+    const playerName = button.classList.item(2);
     const x = coords % 10;
     const y = Math.floor(coords / 10);
-    actionAtCell(x, y);
+    console.log(`click: ${x} ${y} ${playerName}`);
+    actionAtCell(x, y, playerName);
 }
 
 function onCellHover(event) {
@@ -140,6 +181,7 @@ function computerPlaceShips() {
             `computer placed ship at ${x} ${y} axis ${axis} length ${ship}`,
         );
     }
+    players[1].state = PlayerState.WAITING;
 }
 
 function switchPage() {

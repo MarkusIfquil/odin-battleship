@@ -30,3 +30,11 @@
     gap: 5em;
     justify-content: center;
 }
+
+.ship-hit {
+    background-color: purple;
+}
+
+.ship-miss {
+    background-color: black;
+}
