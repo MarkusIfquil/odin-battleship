@@ -1,4 +1,8 @@
-import { getRandomAxis, targetRandomSquare } from "./computer-player";
+import {
+    getRandomAxis,
+    targetRandomSquare,
+    targetSmartSquare,
+} from "./computer-player";
 import {
     makeStartPage,
     makeGamePage,
@@ -9,6 +13,7 @@ import {
     hideScreen,
     clearCells,
     addClasstoCell,
+    getComputerLevel,
 } from "./dom";
 import { Player, PlayerState } from "./game";
 import "./style.css";
@@ -20,6 +25,9 @@ let selection = {};
 let players = [];
 let currentPlayer = 0;
 let isComputerPlaying = false;
+let isComputerSmart = false;
+let lastComputerAttackedSquare;
+let lastLastComputerAttackedSquare;
 
 function getCurrentPlayer() {
     return players[currentPlayer];
@@ -74,7 +82,7 @@ function placeShip(x, y) {
     }
 }
 
-function isClickedAlready(player, x, y) {
+export function isClickedAlready(player, x, y) {
     return player.gameboard.hits[x][y] || player.gameboard.misses[x][y];
 }
 
@@ -85,7 +93,13 @@ function attack(x, y) {
         return;
     }
     console.log("attack", x, y, player.name);
-    otherPlayer.gameboard.receiveAttack([x, y]);
+    if (
+        otherPlayer.gameboard.receiveAttack([x, y]) &&
+        player.name == "computer"
+    ) {
+        lastLastComputerAttackedSquare = lastComputerAttackedSquare;
+        lastComputerAttackedSquare = [x, y];
+    }
     changePlayerState(PlayerState.WAITING);
     swapPlayer();
 }
@@ -119,6 +133,7 @@ function tickAfterAction() {
         changePlayerState(PlayerState.LOSE);
         swapPlayer();
         changePlayerState(PlayerState.WIN);
+        drawMaps();
         return;
     }
     console.log("player states: ", player.state, otherPlayer.state);
@@ -141,7 +156,15 @@ function computerAttack() {
     const otherPlayer = players[0];
     let x, y;
     while (true) {
-        [x, y] = targetRandomSquare(10, 10);
+        if (isComputerSmart && lastComputerAttackedSquare) {
+            [x, y] = targetSmartSquare(
+                lastComputerAttackedSquare,
+                lastLastComputerAttackedSquare,
+                otherPlayer,
+            );
+        } else {
+            [x, y] = targetRandomSquare(10, 10);
+        }
         if (!isClickedAlready(otherPlayer, x, y)) {
             break;
         }
@@ -259,14 +282,17 @@ function computerPlaceShips() {
 function switchPage() {
     console.log("start");
     const [playerOneName, playerTwoName] = getPlayerNames();
-    body.innerHTML = "";
     isComputerPlaying = false;
     players[0] = new Player(playerOneName);
     players[1] = new Player(playerTwoName);
     if (playerTwoName == "computer") {
         isComputerPlaying = true;
         computerPlaceShips();
+        if (getComputerLevel() == "smart") {
+            isComputerSmart = true;
+        }
     }
+    body.innerHTML = "";
     const page = makeGamePage(
         onCellClick,
         onCellHover,

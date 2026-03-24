@@ -7,12 +7,18 @@ function setPlayerMode(event) {
     if (button.textContent == "Versus Computer") {
         document.querySelector("#playertwo-name-input").style.visibility =
             "visible";
+        document.querySelector(".computer").style.visibility = "hidden";
         button.textContent = "Versus Player";
     } else {
         document.querySelector("#playertwo-name-input").style.visibility =
             "hidden";
+        document.querySelector(".computer").style.visibility = "visible";
         button.textContent = "Versus Computer";
     }
+}
+
+export function getComputerLevel() {
+    return document.querySelector("#computer-level").value;
 }
 
 export function makeStartPage(onStart) {
@@ -25,7 +31,21 @@ export function makeStartPage(onStart) {
     let versusButton = document.createElement("button");
     versusButton.textContent = "Versus Computer";
     versusButton.onclick = setPlayerMode;
-    let inputLegend = document.createElement("p");
+    let computerDiv = document.createElement("div");
+    computerDiv.classList.add("computer");
+    let computerLevelLegend = document.createElement("div");
+    computerLevelLegend.textContent = "Select Difficulty";
+    let computerLevel = document.createElement("select");
+    computerLevel.id = "computer-level";
+    let optionDumb = document.createElement("option");
+    optionDumb.value = "dumb";
+    optionDumb.textContent = "dumb";
+    let optionSmart = document.createElement("option");
+    optionSmart.value = "smart";
+    optionSmart.textContent = "smart";
+    computerLevel.append(optionDumb, optionSmart);
+    computerDiv.append(computerLevelLegend, computerLevel);
+    let inputLegend = document.createElement("div");
     inputLegend.textContent = "Enter Name:";
     let playerOneNameInput = document.createElement("input");
     playerOneNameInput.id = "playerone-name-input";
@@ -42,6 +62,7 @@ export function makeStartPage(onStart) {
         inputLegend,
         playerOneNameInput,
         playerTwoNameInput,
+        computerDiv,
         versusButton,
         startButton,
     );

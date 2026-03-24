@@ -46,7 +46,8 @@ button:hover {
     opacity: 0.8;
 }
 
-input {
+input,
+select {
     padding: 0.5em;
     margin: 0.5em;
 }
@@ -57,14 +58,24 @@ p {
     margin: 1em;
 }
 
+.computer {
+    display: flex;
+    align-items: center;
+    flex-flow: column;
+}
+
 .game-square {
     background-color: var(--ctp-macchiato-surface1);
     border: 2px solid var(--ctp-macchiato-crust);
     border-radius: 0.3em;
 }
 
-.game-square.hover-attack,
-.attack-ghost {
+.hover-attack {
+    background-color: var(--ctp-macchiato-overlay1);
+}
+
+.attack-ghost,
+.place-ghost {
     background-color: var(--ctp-macchiato-surface2);
 }
 
