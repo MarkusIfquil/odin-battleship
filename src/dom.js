@@ -16,6 +16,8 @@ function setPlayerMode(event) {
 }
 
 export function makeStartPage(onStart) {
+    console.log(onStart);
+    body.innerHTML = "";
     let page = document.createElement("div");
     let title = document.createElement("h1");
     title.textContent = "BATTLESHIPS";
@@ -31,6 +33,7 @@ export function makeStartPage(onStart) {
     playerTwoNameInput.style.visibility = "hidden";
     let startButton = document.createElement("button");
     startButton.textContent = "Start";
+    startButton.id = "start";
     startButton.onclick = onStart;
 
     page.append(
@@ -59,6 +62,10 @@ function makeGrid(width, height, onCellClick, onCellHover, playerName) {
 
             square.onclick = onCellClick;
             square.onmouseover = onCellHover;
+            square.onmouseleave = () => {
+                console.log("hi");
+                clearCells("hover-attack", "hover-place");
+            };
             grid.append(square);
         }
     }
@@ -70,6 +77,8 @@ export function makeGamePage(
     onCellHover,
     playerOneName,
     playerTwoName,
+    onStart,
+    onSubmit,
 ) {
     let page = document.createElement("div");
     page.className = "game-page";
@@ -82,7 +91,36 @@ export function makeGamePage(
     let playerGrid = makeGrid(10, 10, onCellClick, onCellHover, playerOneName);
     let enemyGrid = makeGrid(10, 10, onCellClick, onCellHover, playerTwoName);
     gridContainer.append(playerGrid, enemyGrid);
-    page.append(turnOrder, command, gridContainer);
+
+    let newGameButton = document.createElement("button");
+    newGameButton.textContent = "New Game";
+    newGameButton.id = "new-game";
+    console.log(onStart);
+    newGameButton.onclick = () => {
+        makeStartPage(onStart);
+    };
+
+    let readyButton = document.createElement("button");
+    readyButton.id = "ready";
+    readyButton.textContent = "Ready";
+    readyButton.style.visibility = "hidden";
+    readyButton.onclick = () => {
+        document.querySelector(".grid-container").style.visibility = "visible";
+        readyButton.style.visibility = "hidden";
+    };
+
+    let submitButton = document.createElement("button");
+    submitButton.id = "submit";
+    submitButton.textContent = "Submit";
+    submitButton.onclick = onSubmit;
+    page.append(
+        turnOrder,
+        command,
+        gridContainer,
+        newGameButton,
+        submitButton,
+        readyButton,
+    );
     return page;
 }
 
@@ -121,7 +159,6 @@ export function addClasstoCell(x, y, playerName, className) {
     cell.classList.add(className);
     return true;
 }
-
 export function drawMap(player, shouldBeHidden) {
     if (shouldBeHidden) {
         const cells = document.querySelectorAll(".game-square");
@@ -130,7 +167,6 @@ export function drawMap(player, shouldBeHidden) {
                 c.classList.remove("placed-ship");
             }
         });
-        return;
     }
     for (let x = 0; x < 10; x++) {
         for (let y = 0; y < 10; y++) {
@@ -148,10 +184,21 @@ export function drawMap(player, shouldBeHidden) {
 }
 
 export function getPlayerNames() {
-    let playerOneName = document.querySelector("#playerone-name-input").value;
-    let playerTwoName = document.querySelector("#playertwo-name-input").value;
-    if (!playerTwoName) {
-        playerTwoName = "computer";
-    }
+    let playerOneName =
+        document.querySelector("#playerone-name-input").value || "player";
+    let playerTwoName =
+        document.querySelector("#playertwo-name-input").value || "computer";
     return [playerOneName, playerTwoName];
+}
+
+export function hideScreen() {
+    document.querySelector(".grid-container").style.visibility = "hidden";
+    document.querySelector("#ready").style.visibility = "visible";
+}
+
+export function clearCells(...classes) {
+    const cells = document.querySelectorAll(".game-square");
+    cells.forEach((c) => {
+        c.classList.remove(...classes);
+    });
 }

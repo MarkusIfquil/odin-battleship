@@ -6,12 +6,15 @@
     border-radius: 0.3em;
 }
 
-.game-square.hover-attack {
+.game-square.hover-attack,
+.attack-ghost {
     background-color: red;
+    opacity: 0.5;
 }
 
-.game-square.hover-place {
-    background-color: green;
+.game-square.hover-place,
+.place-ghost {
+    opacity: 0.8;
 }
 
 .placed-ship {
